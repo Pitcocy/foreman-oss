@@ -1,0 +1,7 @@
+{
+  "name": "foreman",
+  "version": "0.1.0",
+  "description": "Local orchestrator that runs a tracer-bullet plan autonomously: dispatches one-shot headless Workers per phase, verifies independently, commits checkpoints to a run branch, and escalates to a human only on exceptions. Ships with the authoring skills that produce the plan it orchestrates.",
+  "keywords": ["orchestration", "autonomous", "tracer-bullet", "claude-code", "codex", "agents"],
+  "license": "MIT"
+}
