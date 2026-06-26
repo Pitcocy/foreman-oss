@@ -11,7 +11,7 @@ You stay the judge. Foreman never marks a phase done (✅), never merges, and ne
 ## How it works
 
 ```
-Orchestrator (you, running /orchestrate)
+Orchestrator (you, running /foreman)
    │  pre-flights the plan, then per phase:
    ├─► Builder Worker      one-shot `claude -p` or `codex exec`  → writes a Result File
    ├─► Verifier Worker     independent `claude -p`               → writes a pass/fail Verdict
@@ -19,18 +19,16 @@ Orchestrator (you, running /orchestrate)
        on Halt / exhausted retries / gate:human → escalate to you, wait
 ```
 
-- **Workers are one-shot and headless.** They get a self-contained Phase Brief, build, and write a structured Result File. They can't ask questions — if the plan can't be followed, they *Halt* loudly. (See `docs/adr/0001`.)
+- **Workers are one-shot and headless.** They get a self-contained Phase Brief, build, and write a structured Result File. They can't ask questions — if the plan can't be followed, they *Halt* loudly.
 - **Verification is independent.** A separate agent that didn't write the code walks the test steps and leaves a verdict on disk. No verdict is never a pass.
-- **Every checkpoint is a real git commit** authored as `Foreman <foreman@local>`, on a run branch, so you can review commit-by-commit and merge yourself. (See `docs/adr/0002`.)
+- **Every checkpoint is a real git commit** authored as `Foreman <foreman@local>`, on a run branch, so you can review commit-by-commit and merge yourself.
 - **Run state lives in the target project** under `.foreman/runs/<run-id>/` (gitignored). A Run survives the Orchestrator dying — a new session resumes from the manifest.
-
-The domain language is defined in [`CONTEXT.md`](CONTEXT.md); the two load-bearing design decisions are in [`docs/adr/`](docs/adr/).
 
 ## What's in the box
 
 | Skill | Role |
 |-------|------|
-| `orchestrate` | **Foreman core** — runs a plan autonomously (the loop above). |
+| `foreman` | **Foreman core** — runs a plan autonomously (the loop above). |
 | `prd-to-plan` | Turn a PRD into a phased tracer-bullet plan in `plans/`. |
 | `write-a-prd` | Produce a PRD through structured discovery. |
 | `execute-phase` | Run a single phase interactively (the non-autonomous path). |
@@ -38,7 +36,7 @@ The domain language is defined in [`CONTEXT.md`](CONTEXT.md); the two load-beari
 | `prototype` | Build a throwaway prototype to settle a design question. |
 | `tdd` | Red-green-refactor loop for a phase. |
 
-The authoring skills produce the convention that `orchestrate` consumes — together they're the whole loop from idea → plan → autonomous build.
+The authoring skills produce the convention that `foreman` consumes — together they're the whole loop from idea → plan → autonomous build.
 
 ## Requirements
 
@@ -56,7 +54,7 @@ Foreman is a Claude Code plugin distributed via this git repo as a marketplace.
 /plugin install foreman
 ```
 
-(Replace `<your-org>/foreman` with wherever you host this repo.) The skills become available as `/orchestrate`, `/prd-to-plan`, etc.
+(Replace `<your-org>/foreman` with wherever you host this repo.) The skills become available as `/foreman`, `/prd-to-plan`, etc.
 
 ## The target-project convention
 
@@ -73,7 +71,7 @@ If a plan is missing those markers, Foreman's pre-flight stops and resolves them
 From inside (or pointing at) your target project:
 
 ```
-/orchestrate
+/foreman
 ```
 
 Then tell it the target path and the build **Engine** (`claude` or `codex` — required, no default). Foreman pre-flights, then runs. While it works:
@@ -86,29 +84,9 @@ Live-watch any Worker with the `tail -f` command Foreman prints when it dispatch
 
 On completion you get a batch-review handoff: per-phase one-liners, the deferred `manual:` steps to walk yourself, and `git log --author=Foreman --oneline` to review the checkpoints. **Marking ✅ and merging to `main` are yours** — the merge commit is your acceptance signature.
 
-## Configuration
-
-Escalation routing is the only per-install setting. Copy the example and edit:
-
-```
-cp foreman.config.example.json foreman.config.json
-```
-
-`foreman.config.json` is gitignored. If you set nothing, Foreman prints escalations in the Orchestrator chat (always reliable). Set `escalation.channel` to `discord` and fill in a channel id to also get pinged there.
-
-## Safety
-
-Foreman exists to run agents unattended, which means bypassed permissions. Mitigations baked in:
-
-- Workers run **only on a run branch** (`foreman/<plan>-<date>`), never `main`, and **never push** to any remote.
-- Pre-flight **refuses** to start unless the target is a git repo with a **clean tree**, so everything Foreman does is a reviewable diff.
-- Halt/Fail debris is snapshotted as a patch, then the tree is reset to the last passing checkpoint before a retry — no silent accumulation.
-- A phase touching billed APIs prompts a spend-awareness check before dispatch; the Verifier never re-runs anything that spends money or writes externally.
-
-Still: run it on projects you own, and review the run branch before merging.
 
 ## Credits & license
 
 Foreman is MIT licensed — see [`LICENSE`](LICENSE).
 
-The `grill-with-docs`, `prototype`, and `tdd` skills are **adapted from [Matt Pocock's skills collection](https://github.com/mattpocock/skills)** (MIT), modified to fit Foreman's tracer-bullet convention. His license is preserved in [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/). Thanks to Matt for publishing them freely.
+The `grill-with-docs`, `prototype`, `write-a-prd`, `prd-to-plan` and `tdd` skills are **adapted from [Matt Pocock's skills collection](https://github.com/mattpocock/skills)** (MIT), modified to fit Foreman's tracer-bullet convention. His license is preserved in [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/). Thanks to Matt for publishing them freely.
