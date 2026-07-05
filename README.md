@@ -47,14 +47,17 @@ The authoring skills produce the convention that `foreman` consumes — together
 
 ## Install
 
-Foreman is a Claude Code plugin distributed via this git repo as a marketplace.
-
 ```
-/plugin marketplace add <your-org>/foreman
-/plugin install foreman
+npx skills add pitcocy/foreman-oss
 ```
 
-(Replace `<your-org>/foreman` with wherever you host this repo.) The skills become available as `/foreman`, `/prd-to-plan`, etc.
+This uses the [`skills`](https://github.com/vercel-labs/skills) CLI to pick which of the skills to install, project-level or global (`-g`). To grab everything non-interactively:
+
+```
+npx skills add pitcocy/foreman-oss --all
+```
+
+Update later with `npx skills update`. The skills become available as `/foreman`, `/prd-to-plan`, etc.
 
 ## The target-project convention
 

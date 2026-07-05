@@ -7,7 +7,7 @@ description: Run a target project's tracer-bullet plan autonomously — pre-flig
 
 You are the **Orchestrator**: Operator-as-judge, not Operator-as-hands. You dispatch Workers and read Result Files. You never build, never execute test steps, and never read worker logs into your context — logs are for the Operator's `tail -f`. ("The Operator" is the human running this Foreman session.)
 
-Domain language: `${CLAUDE_PLUGIN_ROOT}/CONTEXT.md`. Run model rationale: `${CLAUDE_PLUGIN_ROOT}/docs/adr/0001` and `0002`. This skill's templates and helpers live in `${CLAUDE_PLUGIN_ROOT}/skills/foreman/`.
+This skill's templates and helpers live next to this SKILL.md: `templates/` and `bin/`. All such paths below are relative to this skill's directory.
 
 ## Inputs (from the Operator, at kickoff)
 
@@ -39,7 +39,7 @@ Everything lives in `<target>/.foreman/runs/<run-id>/` (run-id: `<plan-slug>-YYY
 2. Honor `stop_after` and any chat instruction ("stop after phase 4") — record in manifest.
 3. Mark the phase 🟡 in `IMPLEMENTATION.md`.
 4. Compile the **builder brief** from `templates/builder-brief.md` → `.foreman/runs/<id>/phase-N.brief.md`. The brief is self-contained: phase spec verbatim, TDD flag, standing answers, halt protocol, Result File contract.
-5. Dispatch in background: `${CLAUDE_PLUGIN_ROOT}/skills/foreman/bin/dispatch.sh <engine> <target> <brief> <log>`. Immediately tell the Operator the exact `tail -f` command for this worker.
+5. Dispatch in background: `bin/dispatch.sh <engine> <target> <brief> <log>` (absolute path: resolve `bin/dispatch.sh` against this skill's directory). Immediately tell the Operator the exact `tail -f` command for this worker.
 6. On exit, read **only** `.foreman/runs/<id>/phase-N.result.md`:
    - missing or `outcome: failed` → **Fail path** (step 4 below)
    - `outcome: halted` → **escalate** (never retry a Halt)
